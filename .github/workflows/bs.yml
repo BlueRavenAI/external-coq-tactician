@@ -1,0 +1,76 @@
+name: Test benchmarks
+
+on:
+  - push
+  - pull_request
+
+permissions: read-all
+
+jobs:
+  benchmark-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Start privileged container and keep it
+        run: |
+          docker run -d --privileged --user root --name my-ocaml-container ocaml/opam:ubuntu-ocaml-5.2 sleep infinity
+
+      - name: Clone this repo inside container
+        run: |
+          docker exec my-ocaml-container bash -c '
+            git clone https://github.com/${{ github.repository }} benchmark-system &&
+            cd benchmark-system &&
+            git checkout ${{ github.ref }}'
+        
+      - name: Let me see what's inside
+        run: docker exec my-ocaml-container ls benchmark-system
+      
+      - name: Install dependencies
+        run: |
+          docker exec my-ocaml-container bash -c '
+            apt update &&
+            apt install -y bubblewrap libkrb5-dev &&
+            sysctl -w kernel.unprivileged_userns_clone=1 &&
+            echo "Trying bubblewrap..." &&
+            bwrap --dev-bind / / echo "Bubblewrap works!"'        
+
+      - name: Set up SSH
+        run: |
+          docker exec my-ocaml-container bash -c '
+            mkdir -p /root/.ssh &&
+            echo "${{ secrets.TARGET_REPO_SSH_KEY }}" > /root/.ssh/id_ed25519 &&
+            chmod 600 /root/.ssh/id_ed25519 &&
+            echo -e "Host github.com\n  StrictHostKeyChecking no\n  IdentityFile ~/.ssh/id_ed25519\n  User git" > /root/.ssh/config'
+
+      - name: Clone benchmark-data
+        run: |
+          docker exec my-ocaml-container bash -c '
+            git clone git@github.com:brai-m/benchmark-data.git &&
+            git config --global user.name "CI Bot" &&
+            git config --global user.email "ci@example.com" &&
+            pwd'
+
+      - name: Install benchmark-system
+        run: |
+          docker exec my-ocaml-container bash -c '
+            ls &&
+            cd benchmark-system &&
+            eval $(opam env) &&
+            opam install -y .'
+      
+      - name: Start benchmarks
+        run: |
+          docker exec my-ocaml-container bash -c '
+            eval $(opam env) &&
+            tactician-benchmark \
+              -benchmark-data ./benchmark-data/ \
+              -compile-allocator ./benchmark-system/local/compile_allocator \
+              -bench-allocator ./benchmark-system/local/bench_allocator \
+              -max-requests 16 \
+              -max-running 4 \
+              -delay-benchmark \
+              -benchmark-target coq-tactician \
+              -benchmark-repo git+ssh://git@github.com/brai-m/coq-tactician.git \
+              -benchmark-commit 00e096bc7f68db29035e226136aa5421ea3dd9b8 \
+              -benchmark-time 40 \
+              coq-tactician-stdlib'
