@@ -8,7 +8,7 @@ permissions: read-all
 
 jobs:
   benchmark-test:
-    runs-on: ubuntu-latest
+    runs-on: cpu-32
 
     steps:
       - name: Start privileged container and keep it
@@ -68,10 +68,10 @@ jobs:
               -compile-allocator ./benchmark-system/local/compile_allocator \
               -bench-allocator ./benchmark-system/local/bench_allocator \
               -max-requests 16 \
-              -max-running 4 \
+              -max-running 32 \
               -delay-benchmark \
               -benchmark-target coq-tactician \
               -benchmark-repo git+ssh://git@github.com/brai-m/coq-tactician.git \
               -benchmark-commit 00e096bc7f68db29035e226136aa5421ea3dd9b8 \
-              -benchmark-time 40 \
+              -benchmark-time 1 \
               coq-tactician-stdlib'
