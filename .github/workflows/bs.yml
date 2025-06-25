@@ -18,7 +18,7 @@ jobs:
       - name: Clone this repo inside container
         run: |
           docker exec my-ocaml-container bash -c '
-            git clone https://github.com/coq-tactician/benchmark-system &&
+            git clone https://github.com/brai-m/benchmark-system &&
             cd benchmark-system &&
             git checkout master'
         
@@ -68,10 +68,11 @@ jobs:
               -compile-allocator ./benchmark-system/local/compile_allocator \
               -bench-allocator ./benchmark-system/local/bench_allocator \
               -max-requests 16 \
+              -include ./benchmark-system/sampled_lemmas.txt \
               -max-running 32 \
               -delay-benchmark \
               -benchmark-target coq-tactician \
               -benchmark-repo git+ssh://git@github.com/brai-m/coq-tactician.git \
-              -benchmark-commit 6aeb8018efb77279a4f548969ec0bdf41d281b1f \
-              -benchmark-time 1 \
+              -benchmark-commit 00e096bc7f68db29035e226136aa5421ea3dd9b8 \
+              -benchmark-time 40 \
               coq-tactician-stdlib'
