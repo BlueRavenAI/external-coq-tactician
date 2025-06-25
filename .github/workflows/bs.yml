@@ -46,7 +46,7 @@ jobs:
       - name: Clone benchmark-data
         run: |
           docker exec my-ocaml-container bash -c '
-            git clone git@github.com:brai-m/benchmark-data.git &&
+            git clone git@github.com:coq-tactician/benchmark-data.git &&
             git config --global user.name "CI Bot" &&
             git config --global user.email "ci@example.com" &&
             pwd'
