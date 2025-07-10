@@ -73,6 +73,6 @@ jobs:
               -delay-benchmark \
               -benchmark-target coq-tactician \
               -benchmark-repo git+ssh://git@github.com/brai-m/coq-tactician.git \
-              -benchmark-commit f723da8f28ad6c68d6e0dc52526ad040acc578fc \
+              -benchmark-commit f6846d1dd94833369434e9d7f24c98ede8e53939 \
               -benchmark-time 40 \
               coq-tactician-stdlib'
